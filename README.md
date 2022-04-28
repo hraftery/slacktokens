@@ -49,3 +49,12 @@ The cookie is extracted from the Slack app's cookie store. The cookie of interes
 stored encrypted, so a modified version of `pycookiecheat` is used to decrypt the
 contents. The decryption process will prompt you for your user password, which is used
 only to pull out the cookie store encryption secret from your keychain.
+
+# Shortcomings
+- macOS and Linux only.
+	- Windows support contributions welcome.
+- Slack Desktop App only.
+	- Browser support contributions welcome. Preferred implementation: failover to looking through browsers if the app access method fails.
+- Might require the app to be closed, because LevelDB is not a multi-user database and there are no read-only access options.
+- No established method for persisting the token data. Thought long and hard about this, and decided to keep the interface flexible and to leave suitable persistance methods as an exercise for the user.
+	- It turns out the script is fast and read-only, so if the user is another Python script, then perhaps no persistance is required.
