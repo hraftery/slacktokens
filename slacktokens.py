@@ -38,13 +38,15 @@ only to pull out the cookie store encryption secret from your keychain.
 """
 
 __author__ = "Heath Raftery <heath@empirical.ee>"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 def get_tokens_and_cookie():
+  """Return a dictionary containing the Slack personal tokens and cookie."""
   return { 'tokens': get_tokens(), 'cookie': get_cookie() }
 
 def get_tokens():
+  """Return a dictionary containing the token and url for each Slack Workspace."""
   import leveldb
   import sys
   import pathlib
@@ -73,9 +75,12 @@ def get_tokens():
   tokens = {}
   for v in d['teams'].values():
     tokens[v['name']] = { 'token': v['token'], 'url': v['url'] }
+  
+  return tokens
 
 
 def get_cookie():
+  """Return a dictionary containing the name and value of the authentication cookie."""
   import pycookiecheat
 
   cookies = pycookiecheat.chrome_cookies("http://slack.com", browser="Slack")
