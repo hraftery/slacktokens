@@ -38,7 +38,6 @@ only to pull out the cookie store encryption secret from your keychain.
 """
 
 __author__ = "Heath Raftery <heath@empirical.ee>"
-__version__ = "0.2.0"
 
 
 def get_tokens_and_cookie():
