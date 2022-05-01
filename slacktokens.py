@@ -21,7 +21,7 @@ Python dictionary, in the following format:
 ```
 {
   'tokens': [
-    'Workspace name': { token: <personal-token>, url: <URL of Workspace> }
+    'Workspace URL': { token: <personal-token>, name: <friendly name of Workspace> }
     ]
   'cookie': { 'name': 'd', 'value': <value-of-d-cookie> }
 }
@@ -45,7 +45,7 @@ def get_tokens_and_cookie():
   return { 'tokens': get_tokens(), 'cookie': get_cookie() }
 
 def get_tokens():
-  """Return a dictionary containing the token and url for each Slack Workspace."""
+  """Return a dictionary containing the token and name for each Slack Workspace."""
   import leveldb
   import sys
   import pathlib
@@ -56,26 +56,36 @@ def get_tokens():
   elif sys.platform.startswith("linux"):
     LEVELDB_PATH='~/.config/Slack/Local Storage/leveldb'
   else:
-    sys.exit("This script only works on macOS or Linux.")
+    raise OSError("slacktokens only works on macOS or Linux.")
 
-  db = leveldb.LevelDB(str(pathlib.Path(LEVELDB_PATH).expanduser()))
-
+  db = None
   try:
-    cfg = next(v for k,v in db.RangeIter() if bytearray(b'localConfig_v2') in k)
-  except StopIteration:
-    sys.exit("localConfig not found in Slack's LevelDB. Aborting.")
+    db = leveldb.LevelDB(str(pathlib.Path(LEVELDB_PATH).expanduser()))
+  except Exception as e:
+    if "lock" in str(e):
+      raise RuntimeError("Slack's Local Storage database appears to be locked. Have you quit Slack?") from e
+    else:
+      raise
+  else:
+    try:
+      cfg = next(v for k,v in db.RangeIter() if bytearray(b'localConfig_v2') in k)
+    except StopIteration as e:
+      raise RuntimeError("Slack's Local Storage not recognised: localConfig not found. Aborting.") from e
 
-  try:
-    d = json.loads(cfg[1:])
-  except:
-    sys.exit("localConfig not in expected format. Aborting.")
+    try:
+      d = json.loads(cfg[1:])
+    except Exception as e:
+      raise RuntimeError("Slack's Local Storage not recognised: localConfig not in expected format. Aborting.") from e
 
 
-  tokens = {}
-  for v in d['teams'].values():
-    tokens[v['name']] = { 'token': v['token'], 'url': v['url'] }
+    tokens = {}
+    for v in d['teams'].values():
+      tokens[v['url']] = { 'token': v['token'], 'name': v['name'] }
   
-  return tokens
+    return tokens
+  finally:
+    if db:
+      del db # attempt to clean up our lock
 
 
 def get_cookie():
