@@ -1,8 +1,6 @@
 # SlackTokens
 Extract personal tokens and authentication cookie from the Slack app, to use with the Slack API.
 
-**Update Sept 2024:** Slack has once again moved its database, so this does not work with the current version of Slack. There may or may not be a fix coming.
-
 ---
 
 # Description

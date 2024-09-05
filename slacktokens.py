@@ -52,7 +52,8 @@ def get_tokens():
   import json
 
   if sys.platform == "darwin":
-    LEVELDB_PATH='~/Library/Application Support/Slack/Local Storage/leveldb'
+#    LEVELDB_PATH='~/Library/Application Support/Slack/Local Storage/leveldb'
+    LEVELDB_PATH='~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application Support/Slack/Local Storage/leveldb'
   elif sys.platform.startswith("linux"):
     LEVELDB_PATH='~/.config/Slack/Local Storage/leveldb'
   else:
