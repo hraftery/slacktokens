@@ -4,16 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "slacktokens"
-version = "0.2.4"
+version = "0.2.5"
 
 dependencies = [
 	"leveldb==0.201",
     "pycookiecheat",
 ]
 # Python 3.12 deprecates "PyUnicode_AS_UNICODE", which python-leveldb relies on. I
-# haven't found a workaround, so just still with 3.11 for now. I've read "Should You
-# Use Upper Bound Version Contraints" and there seems to be a thick cultural barrier
-# to me understanding all the stated reasons not to to do this. So I'm doing it.
+# haven't found a workaround, so just require 3.11 for now. I've read "Should You Use
+# Upper Bound Version Contraints" and got thoroughly turned off by the hyperrationality.
+# Turns out, in amongst the vehement denial of pragmatism, there's a fundamental flaw
+# in upper bounds - most resolvers, like pip, will quietly "roll back" and just install
+# the last version without this bound! This is not the intended effect, which is to
+# um... require 3.11. Since this is still the intention, I will also yank all previous
+# versions to get the intended outcome. People can still use the previous versions if
+# they want, but by default they will just have to install 3.11 and will get the
+# current, functional version.
 requires-python = ">=3.7, <3.12"
 
 authors = [ {name = "Heath Raftery", email = "heath@empirical.ee" } ]

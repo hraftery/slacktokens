@@ -52,8 +52,11 @@ def get_tokens():
   import json
 
   if sys.platform == "darwin":
-#    LEVELDB_PATH='~/Library/Application Support/Slack/Local Storage/leveldb'
-    LEVELDB_PATH='~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application Support/Slack/Local Storage/leveldb'
+    # leveldb location in MacOS depends on whether the application was installed from
+    # the App Store or direct download. To find out, we simply check for existence.
+    LEVELDB_PATH='~/Library/Application Support/Slack/Local Storage/leveldb'
+    if not pathlib.Path(LEVELDB_PATH).expanduser().exists():
+      LEVELDB_PATH='~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application Support/Slack/Local Storage/leveldb'
   elif sys.platform.startswith("linux"):
     LEVELDB_PATH='~/.config/Slack/Local Storage/leveldb'
   else:
