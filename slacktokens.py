@@ -39,6 +39,53 @@ only to pull out the cookie store encryption secret from your keychain.
 
 __author__ = "Heath Raftery <heath@empirical.ee>"
 
+def _parse_local_config(raw):
+  import json
+
+  if not raw:
+    raise ValueError("localConfig is empty")
+
+  # Chromium localStorage values often include a one-byte prefix.
+  if raw[:1] in (b"\x00", b"\x01", b"\x02"):
+    data = raw[1:]
+  else:
+    data = raw
+
+  # If there are lots of NUL bytes, it's likely UTF-16LE.
+  if data.count(0) > len(data) // 4:
+    encodings = ("utf-16-le", "utf-8")
+  else:
+    encodings = ("utf-8", "utf-16-le")
+
+  last_err = None
+  for enc in encodings:
+    try:
+      text = data.decode(enc)
+    except UnicodeDecodeError as e:
+      last_err = e
+      continue
+
+    # Strict first, then relaxed to allow control characters in strings.
+    for strict in (True, False):
+      try:
+        return json.loads(text, strict=strict)
+      except json.JSONDecodeError as e:
+        last_err = e
+
+    # Some formats wrap or pad the JSON; attempt to extract the object.
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+      snippet = text[start:end + 1]
+      for strict in (True, False):
+        try:
+          return json.loads(snippet, strict=strict)
+        except json.JSONDecodeError as e:
+          last_err = e
+
+  if last_err:
+    raise last_err
+  raise ValueError("localConfig not parseable")
 
 def get_tokens_and_cookie():
   """Return a dictionary containing the Slack personal tokens and cookie."""
@@ -49,7 +96,6 @@ def get_tokens():
   import leveldb
   import sys
   import pathlib
-  import json
 
   if sys.platform == "darwin":
     # leveldb location in MacOS depends on whether the application was installed from
@@ -77,7 +123,7 @@ def get_tokens():
       raise RuntimeError("Slack's Local Storage not recognised: localConfig not found. Aborting.") from e
 
     try:
-      d = json.loads(cfg[1:])
+      d = _parse_local_config(cfg)
     except Exception as e:
       raise RuntimeError("Slack's Local Storage not recognised: localConfig not in expected format. Aborting.") from e
 
